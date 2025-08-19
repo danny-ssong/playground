@@ -1,4 +1,4 @@
-import { 관리자, 일반유저, User } from "./users-old";
+import { 관리자, 일반유저, User } from "./bad-users";
 
 function something(user: User) {
   if (user.role === "admin") {

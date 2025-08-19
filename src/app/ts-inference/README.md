@@ -2,15 +2,18 @@
 
 ## 개요
 
-타입 단언('as') 없이 타입 추론을 통해 깔끔한 코드를 작성한 예시
+특정 객체가 여러 타입이 존재하고 타입마다 객체의 속성이 다른 부분이 있을 때, 타입 단언('as') 없이 타입 추론을 통해 깔끔한 코드를 작성하는 방법
+
+ex) 유저는 관리자, 일반 유저, 게스트 등의 타입이 있고, 타입별로 유저가 갖는 속성이 조금씩 다를 때
 
 ## 기존 방식의 문제
 
-유저마다 가지고 있는 필드가 조금씩 다를때, `role` 속성으로 유저의 타입을 확인했음에도 불구하고, 타입 단언(`as`)를 사용해야 했음
+`role` 별로 유저가 갖는 속성이 조금씩 다를 때, `role` 를 이용해 유저의 타입을 확인했음에도 불구하고, 타입 단언(`as`)를 사용해야 했음
 
 ### 기존 타입 정의
 
 ```typescript
+// bad-users.ts
 export type UserType = "admin" | "user";
 
 export interface BaseUser {
@@ -33,7 +36,7 @@ export type User = 관리자 | 일반유저;
 ### User 접근
 
 ```typescript
-// functions-old.ts
+// bad-functions.ts
 function something(user: User) {
   if (user.role === "admin") {
     //타입 단언 필요
@@ -53,7 +56,7 @@ function something(user: User) {
 ### 개선된 타입 정의
 
 ```typescript
-// users.ts
+// good-users.ts
 export type UserType = "admin" | "user";
 
 export type BaseUser<T extends UserType> = {
@@ -82,7 +85,7 @@ or
 ### 인터페이스 사용예시
 
 ```typescript
-// users2.ts
+// good-users2.ts
 export type UserType = "admin" | "user";
 
 export interface BaseUser<T extends UserType> {
@@ -106,7 +109,7 @@ export type User = 관리자 | 일반유저;
 ### User 접근
 
 ```typescript
-// functions.ts
+// good-functions.ts
 function something(user: User) {
   if (user.role === "admin") {
     //자동으로 '관리자' 타입 추론

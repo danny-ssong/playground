@@ -122,6 +122,139 @@ function something(user: User) {
 }
 ```
 
+<br>
+
+## 복잡한 타입인 경우
+
+아래와 같이 `role`, `subscriptionType`에 따라 프로퍼티가 바뀌는 경우
+
+### 데이터 예시
+
+```
+{
+  id: string,
+  role: "user" | "admin",
+
+  // role이 "User"일 때,
+  personalInfo?: {
+    "name": "홍길동"
+  }
+  // role이 "Admin"일 때,
+  permssions?: [],
+
+
+  subscriptionType: "basic" | "coupon"
+
+  // subscriptionType이 "basic" 일 때,
+  subscription: {
+    "startDate": "2024-01-01T00:00:00.000Z",
+    "nextBillingDate": "2024-02-01T00:00:00.000Z"
+  },
+
+  // subscriptionType이 "coupon" 일 때,
+  subscription: {
+    validDays: number;
+    couponCode: string;
+  },
+
+}
+```
+
+### 타입 정의
+
+```
+// good-complex.user.ts
+export type UserType = "admin" | "user";
+export type SubscriptionType = "basic" | "coupon";
+
+interface BasicSubscription {
+  startDate: Date;
+  nextBillingDate: Date;
+}
+
+interface CouponSubscription {
+  validDays: number;
+  couponCode: string;
+}
+
+type UserSubscriptionMap = {
+  basic: BasicSubscription;
+  coupon: CouponSubscription;
+};
+
+type UserRoleMap<S extends SubscriptionType> = {
+  admin: BaseUser<"admin", S> & {
+    permissions: string[];
+  };
+  user: BaseUser<"user", S> & {
+    personalInfo: {
+      name: string;
+    };
+  };
+};
+
+interface BaseUser<TRole extends UserType, TSubscription extends SubscriptionType> {
+  id: string;
+  role: TRole;
+  subscriptionType: TSubscription;
+  subscription: UserSubscriptionMap[TSubscription];
+}
+
+type UserMap = {
+  [K in SubscriptionType]: UserRoleMap<K>[UserType];
+};
+
+export type User = UserMap[SubscriptionType];
+
+```
+
+or
+
+```
+// good-complex.user2.ts
+export type UserType = "admin" | "user";
+export type SubscriptionType = "basic" | "coupon";
+
+interface BasicSubscription {
+  startDate: Date;
+  nextBillingDate: Date;
+}
+
+interface CouponSubscription {
+  validDays: number;
+  couponCode: string;
+}
+
+type UserSubscriptionMap = {
+  basic: BasicSubscription;
+  coupon: CouponSubscription;
+};
+
+interface BaseUser<TRole extends UserType, TSubscription extends SubscriptionType> {
+  id: string;
+  role: TRole;
+  subscriptionType: TSubscription;
+  subscription: UserSubscriptionMap[TSubscription];
+}
+
+export interface 관리자<TSubscription extends SubscriptionType> extends BaseUser<"admin", TSubscription> {
+  permissions: string[];
+}
+
+export interface 일반유저<TSubscription extends SubscriptionType> extends BaseUser<"user", TSubscription> {
+  personalInfo: {
+    name: string;
+  };
+}
+
+type UserMap = {
+  [K in SubscriptionType]: 관리자<K> | 일반유저<K>;
+};
+
+export type User = UserMap[SubscriptionType];
+
+```
+
 ## 맺으며
 
 매번 `as`로 타입 단언하는게 불편했고, 이건 ts의 단점이라 생각하며 넘겼는데

@@ -16,6 +16,6 @@ export type UserMap = {
   };
 };
 
-export type User = UserMap[keyof UserMap];
+export type User = UserMap[UserType];
 export type 관리자 = UserMap["admin"];
 export type 일반유저 = UserMap["user"];

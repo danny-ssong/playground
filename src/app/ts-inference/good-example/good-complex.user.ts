@@ -1,5 +1,5 @@
 export type UserType = "admin" | "user";
-export type SubscriptionType = "basic" | "coupon";
+export type SubscriptionType = "basic" | "coupon" | null;
 
 interface BasicSubscription {
   startDate: Date;
@@ -31,11 +31,13 @@ interface BaseUser<TRole extends UserType, TSubscription extends SubscriptionTyp
   id: string;
   role: TRole;
   subscriptionType: TSubscription;
-  subscription: UserSubscriptionMap[TSubscription];
+  subscription: TSubscription extends null
+    ? null
+    : UserSubscriptionMap[Extract<TSubscription, keyof UserSubscriptionMap>];
 }
 
 type UserMap = {
-  [K in SubscriptionType]: UserRoleMap<K>[UserType];
+  [K in Exclude<SubscriptionType, null>]: UserRoleMap<K>[UserType];
 };
 
-export type User = UserMap[SubscriptionType];
+export type User = UserMap[Exclude<SubscriptionType, null>];
